@@ -51,19 +51,15 @@ function validateArguments(archivePath: string, bmsScriptPath: string,
                            outPath: string, options: IQBMSOptions): Promise<void> {
   if (path.extname(bmsScriptPath) !== '.bms') {
     // Invalid argument - we were expecting a bms script.
-    return Promise.reject(new util.DataInvalid('bmsScriptPath'));
+    return Promise.reject(new util.ArgumentInvalid('bmsScriptPath'));
   }
   if (!path.isAbsolute(archivePath)) {
     // The archive's absolute path should've been provided.
-    return Promise.reject(new util.DataInvalid('archivePath'));
+    return Promise.reject(new util.ArgumentInvalid('archivePath'));
   }
   if (!path.isAbsolute(outPath)) {
     // outPath must be a directory and point towards an absolute path.
-    return Promise.reject(new util.DataInvalid('outPath'));
-  }
-  if ((options.reimport !== undefined) && (!(!!options.reimport))) {
-    // A reimport type should've been provided.
-    return Promise.reject(new util.DataInvalid('options.reimport'));
+    return Promise.reject(new util.ArgumentInvalid('outPath'));
   }
 
   return Promise.resolve();
@@ -162,54 +158,57 @@ function removeFiltersFile(): Promise<void> {
       : Promise.reject(err));
 }
 
-class QuickBMSWrapper {
-  public reImport(archivePath: string, bmsScriptPath: string,
+function reImport(archivePath: string, bmsScriptPath: string,
                   inPath: string, options: IQBMSOptions): Promise<void> {
-    return validateArguments(archivePath, bmsScriptPath, inPath, options)
-      .then(() => (!!options.wildCards)
-        ? createFiltersFile(options.wildCards)
-        : Promise.resolve())
-      .then(() => (!!options.reimport)
-        ? Promise.resolve()
-        : Promise.reject(new util.DataInvalid('Re-import version was not specified')))
-      .then(() => run('w',
-        [ quote(bmsScriptPath), quote(archivePath), quote(inPath) ], options))
-      .then(() => removeFiltersFile());
-  }
-
-  public extract(archivePath: string, bmsScriptPath: string,
-                 outPath: string, options: IQBMSOptions): Promise<void> {
-    return validateArguments(archivePath, bmsScriptPath, outPath, options)
-      .then(() => (!!options.wildCards)
-        ? createFiltersFile(options.wildCards)
-        : undefined)
-      .then(() => run(undefined,
-        [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
-      .then(() => removeFiltersFile());
-  }
-
-  public list(archivePath: string, bmsScriptPath: string,
-              outPath: string, options: IQBMSOptions): Promise<IListEntry[]> {
-    return validateArguments(archivePath, bmsScriptPath, outPath, options)
-      .then(() => (!!options.wildCards)
-        ? createFiltersFile(options.wildCards)
-        : Promise.resolve())
-      .then(() => run('l',
-        [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
-      .then(() => removeFiltersFile())
-      .then(() => fs.readFileAsync(LOG_FILE_PATH, { encoding: 'utf-8' }))
-      .then(data => {
-        const fileEntries: IListEntry[] = parseList(data, options.wildCards);
-        return Promise.resolve(fileEntries);
-      });
-  }
-
-  public write(archivePath: string, bmsScriptPath: string,
-               outPath: string, options: IQBMSOptions): Promise<void> {
-    return validateArguments(archivePath, bmsScriptPath, outPath, options)
-      .then(() => run('w',
-        [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options));
-  }
+  return validateArguments(archivePath, bmsScriptPath, inPath, options)
+    .then(() => (!!options.wildCards)
+      ? createFiltersFile(options.wildCards)
+      : Promise.resolve())
+    .then(() => (!!options.reimport)
+      ? Promise.resolve()
+      : Promise.reject(new util.ArgumentInvalid('Re-import version was not specified')))
+    .then(() => run('w',
+      [ quote(bmsScriptPath), quote(archivePath), quote(inPath) ], options))
+    .then(() => removeFiltersFile());
 }
 
-export default QuickBMSWrapper;
+function extract(archivePath: string, bmsScriptPath: string,
+                 outPath: string, options: IQBMSOptions): Promise<void> {
+  return validateArguments(archivePath, bmsScriptPath, outPath, options)
+    .then(() => (!!options.wildCards)
+      ? createFiltersFile(options.wildCards)
+      : undefined)
+    .then(() => run(undefined,
+      [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
+    .then(() => removeFiltersFile());
+}
+
+function list(archivePath: string, bmsScriptPath: string,
+              outPath: string, options: IQBMSOptions): Promise<IListEntry[]> {
+  return validateArguments(archivePath, bmsScriptPath, outPath, options)
+    .then(() => (!!options.wildCards)
+      ? createFiltersFile(options.wildCards)
+      : Promise.resolve())
+    .then(() => run('l',
+      [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
+    .then(() => removeFiltersFile())
+    .then(() => fs.readFileAsync(LOG_FILE_PATH, { encoding: 'utf-8' }))
+    .then(data => {
+      const fileEntries: IListEntry[] = parseList(data, options.wildCards);
+      return Promise.resolve(fileEntries);
+    });
+}
+
+function write(archivePath: string, bmsScriptPath: string,
+               outPath: string, options: IQBMSOptions): Promise<void> {
+  return validateArguments(archivePath, bmsScriptPath, outPath, options)
+    .then(() => run('w',
+      [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options));
+}
+
+module.exports = {
+  reImport,
+  list,
+  write,
+  extract,
+};

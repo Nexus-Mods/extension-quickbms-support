@@ -7,7 +7,7 @@ const DOWNLOAD_PAGE = 'https://aluigi.altervista.org/quickbms.htm';
 import * as api from 'vortex-api';
 const { Dashlet } = api as any;
 
-class PakAttribDashlet extends PureComponentEx<{}, {}> {
+class QBMSAttribDashlet extends PureComponentEx<{}, {}> {
   public render() {
     const { t } = this.props;
     return (
@@ -19,14 +19,18 @@ class PakAttribDashlet extends PureComponentEx<{}, {}> {
           {t('Special thanks to {{author}} for developing this tool',
           { replace: { author: 'Luigi Auriemma' }})}
         </div>
+        <div>
+          {t('You can find the QBMS home page: ')}
+          <a onClick={this.openQBMSPage}>{DOWNLOAD_PAGE}</a>
+        </div>
       </Dashlet>
     );
   }
 
   private openQBMSPage = () => {
-    (util as any).opn(DOWNLOAD_PAGE);
+    (util as any).opn(DOWNLOAD_PAGE).catch(err => null);
   }
 }
 
-export default withTranslation(['common', 'pak-support'])
-  (PakAttribDashlet as any) as React.ComponentClass<{}>;
+export default withTranslation(['common', 'qbms-support'])
+  (QBMSAttribDashlet as any) as React.ComponentClass<{}>;
