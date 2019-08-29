@@ -83,6 +83,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
       (!!options.quiet) ? '-q' : undefined,
       (!!options.overwrite) ? '-o' : undefined,
       (!!options.caseSensitive) ? '-I' : undefined,
+      (!!options.keepTemporaryFiles) ? '-T' : undefined,
       (!!options.wildCards) ? '-f ' + quote(FILTER_FILE_PATH) : undefined,
     ];
 
