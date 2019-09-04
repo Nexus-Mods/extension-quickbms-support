@@ -1,6 +1,5 @@
 import * as Promise from 'bluebird';
 
-export type ReImportType = 'reimportv1' | 'reimportv2';
 export type QBMSOperationType = 'extract' | 'reimport' | 'write' | 'list';
 
 export type QBMSFunc = (bmsScriptPath: string,
@@ -28,17 +27,19 @@ export interface IQBMSOptions {
   //  it executes. This option ensures that qbms does not remove those automatically.
   keepTemporaryFiles?: boolean;
 
-  // file wildcards: both {} and * are valid, although {} is less error prone.
-  wildCards?: string[];
-
-  // The reimport process attempts to replace files within a game's archive.
+  // The allow resize paremeter controls QBMS's reimport process which attempts
+  // to replace files within a game's archive. When set to true it will use "reimport2"
+  //  and the regular "reimport" when set to false.
   //  qbms offers two reimport types, "reimport" and "reimport2";
   //  - When using the default "reimport" type it's important to ensure that
   //    the files you're using as replacements are not larger than the original files!!
   //  - Use "reimport2" if the replacement files are larger than the original files but be
   //    wary that this may be _one_ time reimport as it may throw off any existing
   //    BMS scripts because size/offset would have changed.
-  reimport?: ReImportType;
+  allowResize?: boolean;
+
+  // file wildcards: both {} and * are valid, although {} is less error prone.
+  wildCards?: string[];
 }
 
 export interface IListEntry {

@@ -75,8 +75,8 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
   return new Promise<void>((resolve, reject) => {
     let args = [
       (!!command) ? ' -' + command : undefined,
-      (!!options.reimport)
-        ? (options.reimport === 'reimportv1')
+      (!!options.allowResize)
+        ? (!options.allowResize)
           ? '-r'
           : '-r -r'
         : undefined,
@@ -165,7 +165,7 @@ function reImport(archivePath: string, bmsScriptPath: string,
     .then(() => (!!options.wildCards)
       ? createFiltersFile(options.wildCards)
       : Promise.resolve())
-    .then(() => (!!options.reimport)
+    .then(() => (!!options.allowResize)
       ? Promise.resolve()
       : Promise.reject(new util.ArgumentInvalid('Re-import version was not specified')))
     .then(() => run('w',

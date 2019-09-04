@@ -16,16 +16,17 @@ function init(context: types.IExtensionContext) {
     isSupported, () => ({}), undefined);
 
   context.once(() => {
-    context.api.onAsync('quickbms-operation', (gameId: string,
-                                               bmsScriptPath: string,
-                                               archivePath: string,
-                                               inPath: string,
-                                               opType: QBMSOperationType,
-                                               options: IQBMSOptions,
-                                               callback: (data: Error | IListEntry[]) => void) => {
+    context.api.events.on('quickbms-operation', (gameId: string,
+                                                 bmsScriptPath: string,
+                                                 archivePath: string,
+                                                 inPath: string,
+                                                 opType: QBMSOperationType,
+                                                 options: IQBMSOptions,
+                                                 // tslint:disable-next-line: max-line-length
+                                                 callback: (err: Error, data: IListEntry[]) => void) => {
       const reportError = (err: Error) => {
         log('error', 'qbms encountered an error', err.message);
-        callback(err);
+        callback(err, undefined);
       };
 
       if (supportedGames.indexOf(gameId) !== -1) {
@@ -44,10 +45,11 @@ function init(context: types.IExtensionContext) {
           case 'list':
           default:
             return qbms.list(archivePath, bmsScriptPath, inPath, options)
-              .then(listEntries => callback(listEntries))
+              .then(listEntries => callback(undefined, listEntries))
               .catch(err => reportError(err));
         }
         return qbmsFunc(archivePath, bmsScriptPath, inPath, options)
+          .then(() => callback(undefined, undefined)) // All went well.
           .catch(err => reportError(err));
       }
     });
