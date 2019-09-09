@@ -37,29 +37,36 @@ Opens the game archive in write mode, this allows us to write bits/bytes/strings
 Lists decoded information and returns it back to the operation caller.
 
 ## **QBMS options** ##
-- Overwrite
-	Overwrite existing files during extraction.
+**Overwrite**
+
+Overwrite existing files during extraction.
 	
-- Verbose Mode
-	QBMS will output additional information as it runs its operations.
+**Verbose Mode**
 
-- Quiet Mode
-	The opposite of Verbose; will log less information.
+QBMS will output additional information as it runs its operations.
 
-- Create Log
+**Quiet Mode**
+
+The opposite of Verbose; will log less information.
+
+**Create Log**
+
 Saves stdout and stderr output to a log.txt file which can be found inside the Vortex installation folder, default location:
 ```
 “C:\Program Files\Black Tree Gaming Ltd\Vortex\resources\app.asar.unpacked\bundledPlugins\quickbms-support\”
 ```
 
-- Keep Temporary Files
-	BMS scripts are able to create temporary files which are quite useful for chunk based file systems; it’s very important to set this option to true whenever your BMS script creates a temporary file as QBMS will attempt to query whether to keep or delete the temporary file at the end of script execution, omitting this will result in the QBMS process to hang indefinitely.
+**Keep Temporary Files**
 
-- Allow Resize
-	Should only be provided when executing the ReImport operation, this option controls the version of reimport used when importing/replacing files within a game archive - when set to true QBMS will use reimport version 2, alternatively it will use version 1 when set to false. 
+BMS scripts are able to create temporary files which are quite useful for chunk based file systems; it’s very important to set this option to true whenever your BMS script creates a temporary file as QBMS will attempt to query whether to keep or delete the temporary file at the end of script execution, omitting this will result in the QBMS process to hang indefinitely.
 
-- Wildcards
-	Used to filter/find a set of files. E.g. “{}.png” will tell the QBMS operation we only want to extract/list files which end with the png extension, this is very useful for testing game archive contents (Please note that although you can use “*.png”, QBMS functions more reliably with the “{}” wildcard)
+**Allow Resize**
+
+Should only be provided when executing the ReImport operation, this option controls the version of reimport used when importing/replacing files within a game archive - when set to true QBMS will use reimport version 2, alternatively it will use version 1 when set to false. 
+
+**Wildcards**
+
+Used to filter/find a set of files. E.g. “{}.png” will tell the QBMS operation we only want to extract/list files which end with the png extension, this is very useful for testing game archive contents (Please note that although you can use “*.png”, QBMS functions more reliably with the “{}” wildcard)
 
 ## **Usage** ##
 All operations expect the following arguments to be provided in order for QBMS to execute correctly:
