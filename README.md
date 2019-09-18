@@ -59,9 +59,9 @@ e.g. "D:\Games\VortexStagingFolders\devilmaycry5\"
 
 **Create Log**
 
-Saves stdout and stderr output to a log.txt file which can be found inside the defined storage folder, default location:
+Saves stdout and stderr output to a log.txt file which can be found inside the defined storage folder, default location for DMC5:
 ```
-“C:\Users\{USER_NAME}\AppData\Roaming\Vortex\monsterhunterworld”
+“C:\Users\{USER_NAME}\AppData\Roaming\Vortex\devilmaycry5\log.txt”
 ```
 
 **Keep Temporary Files**
