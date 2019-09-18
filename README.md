@@ -51,9 +51,9 @@ The opposite of Verbose; will log less information.
 
 **Create Log**
 
-Saves stdout and stderr output to a log.txt file which can be found inside the Vortex installation folder, default location:
+Saves stdout and stderr output to a quickbms_log.txt file which can be found inside the application data folder, default location:
 ```
-“C:\Program Files\Black Tree Gaming Ltd\Vortex\resources\app.asar.unpacked\bundledPlugins\quickbms-support\”
+“%APPDATA%/Vortex/logs/quickbms_log.txt”
 ```
 
 **Keep Temporary Files**
