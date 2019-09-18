@@ -4,10 +4,13 @@ import * as Promise from 'bluebird';
 import { spawn } from 'child_process';
 import * as path from 'path';
 
+import { app, remote } from 'electron';
 import { fs, util } from 'vortex-api';
 
-const FILTER_FILE_PATH = path.join(__dirname, 'filters.txt');
-const LOG_FILE_PATH = path.join(__dirname, 'log.txt');
+const uniApp = app || remote.app;
+
+const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'filters.txt');
+const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'logs', 'quickbms_log.txt');
 
 const QUICK_BMS_ERRORMSG = [
   'success', // 0
@@ -72,7 +75,10 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
     wstream = fs.createWriteStream(LOG_FILE_PATH);
   }
 
-  return new Promise<void>((resolve, reject) => {
+  // We need to create the logs directory just in case it hasn't been
+  //  created yet.
+  const logsDirectory = path.dirname(LOG_FILE_PATH);
+  return fs.ensureDirAsync(logsDirectory).then(() => new Promise<void>((resolve, reject) => {
     let args = [
       (!!command) ? ' -' + command : undefined,
       (!!options.allowResize)
@@ -142,13 +148,14 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
         stdErrLines.push(line);
       });
     });
-  });
+  }));
 }
 
 function createFiltersFile(wildCards: string[]): Promise<void> {
-  return fs.writeFileAsync(FILTER_FILE_PATH, wildCards.join('\n'))
+  return fs.ensureDirAsync(path.dirname(FILTER_FILE_PATH))
+    .then(() => fs.writeFileAsync(FILTER_FILE_PATH, wildCards.join('\n'))
     .then(() => Promise.resolve())
-    .catch(err => Promise.reject(err));
+    .catch(err => Promise.reject(err)));
 }
 
 function removeFiltersFile(): Promise<void> {
