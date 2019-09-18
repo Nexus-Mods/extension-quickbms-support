@@ -49,19 +49,11 @@ QBMS will output additional information as it runs its operations.
 
 The opposite of Verbose; will log less information.
 
-**Storage Folder**
-
-Defines the location where we want to store any log and filter files which are used by QBMS internally. When not specified, this
-option will default to a game's staging folder.
-```
-e.g. "D:\Games\VortexStagingFolders\devilmaycry5\"
-```
-
 **Create Log**
 
-Saves stdout and stderr output to a log.txt file which can be found inside the defined storage folder, default location:
+Saves stdout and stderr output to a log.txt file which can be found inside the Vortex installation folder, default location:
 ```
-“C:\Users\{USER_NAME}\AppData\Roaming\Vortex\monsterhunterworld”
+“C:\Program Files\Black Tree Gaming Ltd\Vortex\resources\app.asar.unpacked\bundledPlugins\quickbms-support\”
 ```
 
 **Keep Temporary Files**
