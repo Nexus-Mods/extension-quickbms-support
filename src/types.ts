@@ -1,7 +1,5 @@
 import * as Promise from 'bluebird';
 
-export type QMBSFileType = 'log' | 'filters';
-
 export type QBMSOperationType = 'extract' | 'reimport' | 'write' | 'list';
 
 export type QBMSFunc = (bmsScriptPath: string,
@@ -39,11 +37,6 @@ export interface IQBMSOptions {
   //    wary that this may be _one_ time reimport as it may throw off any existing
   //    BMS scripts because size/offset would have changed.
   allowResize?: boolean;
-
-  // The game's storage folder - we're going to create the filter and log files
-  //  at this location. By default will point towards the game's staging folder
-  //  unless specified otherwise.
-  storageFolder?: string;
 
   // file wildcards: both {} and * are valid, although {} is less error prone.
   wildCards?: string[];

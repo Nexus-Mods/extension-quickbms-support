@@ -1,10 +1,13 @@
-import { IListEntry, IQBMSOptions, QMBSFileType } from './types';
+import { IListEntry, IQBMSOptions } from './types';
 
 import * as Promise from 'bluebird';
 import { spawn } from 'child_process';
 import * as path from 'path';
 
 import { fs, util } from 'vortex-api';
+
+const FILTER_FILE_PATH = path.join(__dirname, 'filters.txt');
+const LOG_FILE_PATH = path.join(__dirname, 'log.txt');
 
 const QUICK_BMS_ERRORMSG = [
   'success', // 0
@@ -25,17 +28,6 @@ const QUICK_BMS_ERRORMSG = [
 
 function quote(input: string): string {
   return '"' + input + '"';
-}
-
-function fileLocation(fileType: QMBSFileType, storageFolder: string) {
-  switch (fileType) {
-    case 'log':
-      return path.join(storageFolder, 'log.txt');
-    case 'filters':
-      return path.join(storageFolder, 'filters.txt');
-    default:
-      return undefined;
-  }
 }
 
 function parseList(input: string, wildCards: string[]): IListEntry[] {
@@ -70,12 +62,6 @@ function validateArguments(archivePath: string, bmsScriptPath: string,
     return Promise.reject(new util.ArgumentInvalid('outPath'));
   }
 
-  if (!path.isAbsolute(options.storageFolder)) {
-    // storage folder must be defined so we know where to store log and
-    //  filter files.
-    return Promise.reject(new util.ArgumentInvalid('options.storageFolder'));
-  }
-
   return Promise.resolve();
 }
 
@@ -83,7 +69,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
   let wstream;
   const createLog = (!!options.createLog || (command === 'l'));
   if (createLog) {
-    wstream = fs.createWriteStream(fileLocation('log', options.storageFolder));
+    wstream = fs.createWriteStream(LOG_FILE_PATH);
   }
 
   return new Promise<void>((resolve, reject) => {
@@ -98,7 +84,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
       (!!options.overwrite) ? '-o' : undefined,
       (!!options.caseSensitive) ? '-I' : undefined,
       (!!options.keepTemporaryFiles) ? '-T' : undefined,
-      (!!options.wildCards) ? '-f ' + quote(fileLocation('filters', options.storageFolder)) : undefined,
+      (!!options.wildCards) ? '-f ' + quote(FILTER_FILE_PATH) : undefined,
     ];
 
     args = args.filter(arg => arg !== undefined).concat(parameters);
@@ -159,15 +145,15 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
   });
 }
 
-function createFiltersFile(filePath: string, wildCards: string[]): Promise<void> {
-  return fs.writeFileAsync(filePath, wildCards.join('\n'))
+function createFiltersFile(wildCards: string[]): Promise<void> {
+  return fs.writeFileAsync(FILTER_FILE_PATH, wildCards.join('\n'))
     .then(() => Promise.resolve())
     .catch(err => Promise.reject(err));
 }
 
-function removeFiltersFile(filePath: string): Promise<void> {
-  return fs.statAsync(filePath)
-    .then(() => fs.removeAsync(filePath))
+function removeFiltersFile(): Promise<void> {
+  return fs.statAsync(FILTER_FILE_PATH)
+    .then(() => fs.removeAsync(FILTER_FILE_PATH))
     .catch(err => (err.code === 'ENOENT')
       ? Promise.resolve()
       : Promise.reject(err));
@@ -177,37 +163,37 @@ function reImport(archivePath: string, bmsScriptPath: string,
                   inPath: string, options: IQBMSOptions): Promise<void> {
   return validateArguments(archivePath, bmsScriptPath, inPath, options)
     .then(() => (!!options.wildCards)
-      ? createFiltersFile(fileLocation('filters', options.storageFolder), options.wildCards)
+      ? createFiltersFile(options.wildCards)
       : Promise.resolve())
     .then(() => (!!options.allowResize)
       ? Promise.resolve()
       : Promise.reject(new util.ArgumentInvalid('Re-import version was not specified')))
     .then(() => run('w',
       [ quote(bmsScriptPath), quote(archivePath), quote(inPath) ], options))
-    .then(() => removeFiltersFile(fileLocation('filters', options.storageFolder)));
+    .then(() => removeFiltersFile());
 }
 
 function extract(archivePath: string, bmsScriptPath: string,
                  outPath: string, options: IQBMSOptions): Promise<void> {
   return validateArguments(archivePath, bmsScriptPath, outPath, options)
     .then(() => (!!options.wildCards)
-      ? createFiltersFile(fileLocation('filters', options.storageFolder), options.wildCards)
+      ? createFiltersFile(options.wildCards)
       : undefined)
     .then(() => run(undefined,
       [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
-    .then(() => removeFiltersFile(fileLocation('filters', options.storageFolder)));
+    .then(() => removeFiltersFile());
 }
 
 function list(archivePath: string, bmsScriptPath: string,
               outPath: string, options: IQBMSOptions): Promise<IListEntry[]> {
   return validateArguments(archivePath, bmsScriptPath, outPath, options)
     .then(() => (!!options.wildCards)
-      ? createFiltersFile(fileLocation('filters', options.storageFolder), options.wildCards)
+      ? createFiltersFile(options.wildCards)
       : Promise.resolve())
     .then(() => run('l',
       [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
-    .then(() => removeFiltersFile(fileLocation('filters', options.storageFolder)))
-    .then(() => fs.readFileAsync(fileLocation('log', options.storageFolder), { encoding: 'utf-8' }))
+    .then(() => removeFiltersFile())
+    .then(() => fs.readFileAsync(LOG_FILE_PATH, { encoding: 'utf-8' }))
     .then(data => {
       const fileEntries: IListEntry[] = parseList(data, options.wildCards);
       return Promise.resolve(fileEntries);
