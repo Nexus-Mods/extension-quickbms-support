@@ -53,7 +53,7 @@ The opposite of Verbose; will log less information.
 
 Saves stdout and stderr output to a quickbms_log.txt file which can be found inside the application data folder, default location:
 ```
-“%APPDATA%/Vortex/logs/quickbms_log.txt”
+“%APPDATA%/Vortex/quickbms.log”
 ```
 
 **Keep Temporary Files**
