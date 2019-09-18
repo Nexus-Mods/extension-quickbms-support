@@ -28,6 +28,17 @@ function init(context: types.IExtensionContext) {
         callback(err, undefined);
       };
 
+      if ((options === undefined) || (options.storageFolder === undefined)) {
+        // Storage folder has not been defined - we're going to point it
+        //  to the staging folder.
+        const state = context.api.store.getState();
+        const gameMode = selectors.activeGameId(state);
+        const stagingFolder = selectors.installPathForGame(state, gameMode);
+        options = (options === undefined)
+          ? { storageFolder: stagingFolder }
+          : { ...options, storageFolder: stagingFolder };
+      }
+
       const qbms = require('./quickbms');
       let qbmsFunc: QBMSFunc;
       switch (opType) {
