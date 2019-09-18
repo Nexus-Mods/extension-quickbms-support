@@ -9,8 +9,8 @@ import { fs, util } from 'vortex-api';
 
 const uniApp = app || remote.app;
 
-const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'filters.txt');
-const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'logs', 'quickbms_log.txt');
+const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'qbms', 'filters.txt');
+const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'quickbms.log');
 
 const QUICK_BMS_ERRORMSG = [
   'success', // 0
@@ -75,10 +75,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
     wstream = fs.createWriteStream(LOG_FILE_PATH);
   }
 
-  // We need to create the logs directory just in case it hasn't been
-  //  created yet.
-  const logsDirectory = path.dirname(LOG_FILE_PATH);
-  return fs.ensureDirAsync(logsDirectory).then(() => new Promise<void>((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     let args = [
       (!!command) ? ' -' + command : undefined,
       (!!options.allowResize)
@@ -148,7 +145,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
         stdErrLines.push(line);
       });
     });
-  }));
+  });
 }
 
 function createFiltersFile(wildCards: string[]): Promise<void> {
