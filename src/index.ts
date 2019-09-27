@@ -1,6 +1,8 @@
 import AttribDashlet from './AttribDashlet';
 import { IListEntry, IQBMSOptions, QBMSFunc, QBMSOperationType } from './types';
 
+import { QuickBMSError } from './quickbms';
+
 import { log, selectors, types } from 'vortex-api';
 
 const attribGames = ['residentevil22019', 'devilmaycry5'];
@@ -24,7 +26,10 @@ function init(context: types.IExtensionContext) {
                                                  // tslint:disable-next-line: max-line-length
                                                  callback: (err: Error, data: IListEntry[]) => void) => {
       const reportError = (err: Error) => {
-        log('error', 'qbms encountered an error', err.message);
+        const errMessage = (err instanceof QuickBMSError)
+          ? err.message + '\n\n' + (err as QuickBMSError).errorLines
+          : err.message;
+        log('error', 'qbms encountered an error', errMessage);
         callback(err, undefined);
       };
 

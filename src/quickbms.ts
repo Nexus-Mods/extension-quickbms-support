@@ -9,6 +9,19 @@ import { fs, util } from 'vortex-api';
 
 const uniApp = app || remote.app;
 
+export class QuickBMSError extends Error {
+  private mErrorLines: string[];
+  constructor(message: string, stdErrLines: string[]) {
+    super(message);
+    this.name = this.constructor.name;
+    this.mErrorLines = stdErrLines;
+  }
+
+  public get errorLines(): string {
+    return this.mErrorLines.join('\n');
+  }
+}
+
 const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'qbms', 'filters.txt');
 const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'quickbms.log');
 
@@ -117,7 +130,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
         const errorMsg = (code > QUICK_BMS_ERRORMSG.length - 1)
           ? QUICK_BMS_ERRORMSG[1]
           : QUICK_BMS_ERRORMSG[code];
-        return reject(new Error(`quickbms(${code}) - ` + errorMsg));
+        return reject(new QuickBMSError(`quickbms(${code}) - ` + errorMsg, stdErrLines));
       }
 
       const hasErrors = stdErrLines.find(line =>
