@@ -1,4 +1,4 @@
-import { IListEntry, IQBMSOptions } from './types';
+import { IListEntry, IQBMSOptions, QuickBMSError } from './types';
 
 import * as Promise from 'bluebird';
 import { spawn } from 'child_process';
@@ -8,19 +8,6 @@ import { app, remote } from 'electron';
 import { fs, util } from 'vortex-api';
 
 const uniApp = app || remote.app;
-
-export class QuickBMSError extends Error {
-  private mErrorLines: string[];
-  constructor(message: string, stdErrLines: string[]) {
-    super(message);
-    this.name = this.constructor.name;
-    this.mErrorLines = stdErrLines;
-  }
-
-  public get errorLines(): string {
-    return this.mErrorLines.join('\n');
-  }
-}
 
 const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'qbms', 'filters.txt');
 const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'quickbms.log');

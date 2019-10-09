@@ -1,7 +1,5 @@
 import AttribDashlet from './AttribDashlet';
-import { IListEntry, IQBMSOptions, QBMSFunc, QBMSOperationType } from './types';
-
-import { QuickBMSError } from './quickbms';
+import { IListEntry, IQBMSOptions, QBMSFunc, QBMSOperationType, QuickBMSError } from './types';
 
 import { log, selectors, types } from 'vortex-api';
 

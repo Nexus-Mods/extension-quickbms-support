@@ -1,5 +1,18 @@
 import * as Promise from 'bluebird';
 
+export class QuickBMSError extends Error {
+  private mErrorLines: string[];
+  constructor(message: string, stdErrLines: string[]) {
+    super(message);
+    this.name = this.constructor.name;
+    this.mErrorLines = stdErrLines;
+  }
+
+  public get errorLines(): string {
+    return this.mErrorLines.join('\n');
+  }
+}
+
 export type QBMSOperationType = 'extract' | 'reimport' | 'write' | 'list';
 
 export type QBMSFunc = (bmsScriptPath: string,
