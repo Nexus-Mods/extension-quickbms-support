@@ -11,6 +11,8 @@ const uniApp = app || remote.app;
 
 const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'qbms', 'filters.txt');
 const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'quickbms.log');
+const TIMEOUT_MSEC = 15000;
+const CHECK_TIME_MSEC = 5000;
 
 const QUICK_BMS_ERRORMSG = [
   'success', // 0
@@ -27,6 +29,7 @@ const QUICK_BMS_ERRORMSG = [
   'user/external application has terminated quickBMS', // 11
   'extra IO error', // 12
   'failed to update quickbms', // 13
+  'QBMS has timed out', // 14 - this is reported by the timeout functionality.
 ];
 
 function quote(input: string): string {
@@ -69,6 +72,8 @@ function validateArguments(archivePath: string, bmsScriptPath: string,
 }
 
 function run(command: string, parameters: string[], options: IQBMSOptions): Promise<void> {
+  let timer: NodeJS.Timer;
+  let lastMessageReceived;
   let wstream;
   const createLog = (!!options.createLog || (command === 'l'));
   if (createLog) {
@@ -98,6 +103,23 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
       shell: true,
     });
 
+    const onNewMessage = () => {
+      lastMessageReceived = Date.now();
+      if (timer === undefined) {
+        timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+      }
+    };
+
+    const checkTimer = () => {
+      if ((lastMessageReceived + TIMEOUT_MSEC) <= Date.now()) {
+        process.kill();
+        clearTimeout(timer);
+        timer = undefined;
+      } else {
+        timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+      }
+    };
+
     const stdOutLines = [];
     const stdErrLines = [];
 
@@ -108,9 +130,25 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
       return reject(err);
     });
 
-    process.on('close', (code) => {
-      if (createLog) {
+    process.on('close', (code, signal) => {
+      if (signal === 'SIGTERM') {
+        if (!createLog) {
+          // We timed out - We want this logged regardless of whether
+          //  the create log switch has been provided!
+          wstream = fs.createWriteStream(LOG_FILE_PATH);
+        }
+        const timeoutDump = [].concat(['QBMS has timed out!'], stdErrLines, stdOutLines);
+        timeoutDump.forEach(line => wstream.write(line + '\n'));
+
         wstream.close();
+        wstream = undefined;
+        // tslint:disable-next-line: max-line-length
+        return reject(new QuickBMSError(`quickbms(${signal}) - ${QUICK_BMS_ERRORMSG[14]}`, stdErrLines));
+      }
+
+      if (!!wstream) {
+        wstream.close();
+        wstream = undefined;
       }
 
       if (code !== 0) {
@@ -129,6 +167,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
     });
 
     process.stdout.on('data', data => {
+      onNewMessage();
       const formatted = data.toString().split('\n');
       formatted.forEach(line => {
         const formattedLine = line.replace(/\\/g, '/');
@@ -140,6 +179,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
     });
 
     process.stderr.on('data', data => {
+      onNewMessage();
       const formatted = data.toString().split('\n');
       formatted.forEach(line => {
         stdErrLines.push(line);
