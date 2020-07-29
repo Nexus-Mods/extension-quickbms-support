@@ -4,8 +4,16 @@ export class QuickBMSError extends Error {
   private mErrorLines: string[];
   constructor(message: string, stdErrLines: string[]) {
     super(message);
-    this.name = this.constructor.name;
-    this.mErrorLines = stdErrLines;
+    this.name = 'QuickBMSError';
+
+    // We probably only care for the last ~40 lines which will
+    //  generally contain some sort of clue as to what actually happened.
+    //  stdErr output from QBMS can be hundreds if not thousands of lines
+    //  long (depending on how many mods the user had installed) which
+    //  can cause the array to get truncated "<long array cut>"
+    this.mErrorLines = (stdErrLines.length > 40)
+      ? stdErrLines.slice(stdErrLines.length - 40)
+      : stdErrLines;
   }
 
   public get errorLines(): string {
