@@ -1,7 +1,7 @@
 import Promise from 'bluebird';
 
 export class QuickBMSError extends Error {
-  private mErrorLines: string[];
+  private mErrorLines: string;
   constructor(message: string, stdErrLines: string[]) {
     super(message);
     this.name = 'QuickBMSError';
@@ -12,12 +12,12 @@ export class QuickBMSError extends Error {
     //  long (depending on how many mods the user had installed) which
     //  can cause the array to get truncated "<long array cut>"
     this.mErrorLines = (stdErrLines.length > 40)
-      ? stdErrLines.slice(stdErrLines.length - 40)
-      : stdErrLines;
+      ? stdErrLines.slice(stdErrLines.length - 40).join('\n')
+      : stdErrLines.join('\n');
   }
 
   public get errorLines(): string {
-    return this.mErrorLines.join('\n');
+    return this.mErrorLines;
   }
 }
 
