@@ -1,4 +1,4 @@
-import { IListEntry, IQBMSOptions, QuickBMSError } from './types';
+import { IListEntry, IQBMSOpProps, IQBMSOptions, QuickBMSError } from './types';
 
 import Promise from 'bluebird';
 import { spawn } from 'child_process';
@@ -203,52 +203,52 @@ function removeFiltersFile(): Promise<void> {
       : Promise.reject(err));
 }
 
-function reImport(archivePath: string, bmsScriptPath: string,
-                  inPath: string, options: IQBMSOptions): Promise<void> {
-  return validateArguments(archivePath, bmsScriptPath, inPath, options)
-    .then(() => (!!options.wildCards)
-      ? createFiltersFile(options.wildCards)
+function reImport(props: IQBMSOpProps): Promise<void> {
+  const { archivePath, bmsScriptPath, qbmsOptions, operationPath } = props;
+  return validateArguments(archivePath, bmsScriptPath, operationPath, qbmsOptions)
+    .then(() => (!!qbmsOptions.wildCards)
+      ? createFiltersFile(qbmsOptions.wildCards)
       : Promise.resolve())
-    .then(() => (!!options.allowResize)
+    .then(() => (!!qbmsOptions.allowResize)
       ? Promise.resolve()
       : Promise.reject(new util.ArgumentInvalid('Re-import version was not specified')))
     .then(() => run('w',
-      [ quote(bmsScriptPath), quote(archivePath), quote(inPath) ], options))
+      [ quote(bmsScriptPath), quote(archivePath), quote(operationPath) ], qbmsOptions))
     .then(() => removeFiltersFile());
 }
 
-function extract(archivePath: string, bmsScriptPath: string,
-                 outPath: string, options: IQBMSOptions): Promise<void> {
-  return validateArguments(archivePath, bmsScriptPath, outPath, options)
-    .then(() => (!!options.wildCards)
-      ? createFiltersFile(options.wildCards)
+function extract(props: IQBMSOpProps): Promise<void> {
+  const { archivePath, bmsScriptPath, qbmsOptions, operationPath } = props;
+  return validateArguments(archivePath, bmsScriptPath, operationPath, qbmsOptions)
+    .then(() => (!!qbmsOptions.wildCards)
+      ? createFiltersFile(qbmsOptions.wildCards)
       : undefined)
     .then(() => run(undefined,
-      [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
+      [ quote(bmsScriptPath), quote(archivePath), quote(operationPath) ], qbmsOptions))
     .then(() => removeFiltersFile());
 }
 
-function list(archivePath: string, bmsScriptPath: string,
-              outPath: string, options: IQBMSOptions): Promise<IListEntry[]> {
-  return validateArguments(archivePath, bmsScriptPath, outPath, options)
-    .then(() => (!!options.wildCards)
-      ? createFiltersFile(options.wildCards)
+function list(props: IQBMSOpProps): Promise<IListEntry[]> {
+  const { archivePath, bmsScriptPath, qbmsOptions, operationPath } = props;
+  return validateArguments(archivePath, bmsScriptPath, operationPath, qbmsOptions)
+    .then(() => (!!qbmsOptions.wildCards)
+      ? createFiltersFile(qbmsOptions.wildCards)
       : Promise.resolve())
     .then(() => run('l',
-      [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options))
+      [ quote(bmsScriptPath), quote(archivePath), quote(operationPath) ], qbmsOptions))
     .then(() => removeFiltersFile())
     .then(() => fs.readFileAsync(LOG_FILE_PATH, { encoding: 'utf-8' }))
     .then(data => {
-      const fileEntries: IListEntry[] = parseList(data, options.wildCards);
+      const fileEntries: IListEntry[] = parseList(data, qbmsOptions.wildCards);
       return Promise.resolve(fileEntries);
     });
 }
 
-function write(archivePath: string, bmsScriptPath: string,
-               outPath: string, options: IQBMSOptions): Promise<void> {
-  return validateArguments(archivePath, bmsScriptPath, outPath, options)
+function write(props: IQBMSOpProps): Promise<void> {
+  const { archivePath, bmsScriptPath, qbmsOptions, operationPath } = props;
+  return validateArguments(archivePath, bmsScriptPath, operationPath, qbmsOptions)
     .then(() => run('w',
-      [ quote(bmsScriptPath), quote(archivePath), quote(outPath) ], options));
+      [ quote(bmsScriptPath), quote(archivePath), quote(operationPath) ], qbmsOptions));
 }
 
 module.exports = {

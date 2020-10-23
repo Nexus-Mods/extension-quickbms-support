@@ -21,12 +21,13 @@ export class QuickBMSError extends Error {
   }
 }
 
-export type QBMSOperationType = 'extract' | 'reimport' | 'write' | 'list';
+export class UnregisteredGameError extends Error {
+  constructor(gameMode: string) {
+    super(`${gameMode} is not a qbms registered game`);
+  }
+}
 
-export type QBMSFunc = (bmsScriptPath: string,
-                        archivePath: string,
-                        inPath: string,
-                        options: IQBMSOptions) => Promise<void>;
+export type QBMSOperationType = 'extract' | 'reimport' | 'write' | 'list';
 
 export interface IQBMSOptions {
   // qbms will overwrite any existing files during extraction.
@@ -55,7 +56,7 @@ export interface IQBMSOptions {
   //  - When using the default "reimport" type it's important to ensure that
   //    the files you're using as replacements are not larger than the original files!!
   //  - Use "reimport2" if the replacement files are larger than the original files but be
-  //    wary that this may be _one_ time reimport as it may throw off any existing
+  //    wary that this may be a _one_ time reimport as it may throw off any existing
   //    BMS scripts because size/offset would have changed.
   allowResize?: boolean;
 
@@ -67,4 +68,39 @@ export interface IListEntry {
   offset: string;
   size: string;
   filePath: string;
+}
+
+export interface IQBMSOpProps {
+  // The Nexus Mods domain name for the game
+  //  in question.
+  gameMode: string;
+
+  // Absolute path to the BMS script to be used
+  //  for this QBMS operation.
+  bmsScriptPath: string;
+
+  // Absolute path to the affected archive
+  archivePath: string;
+
+  // QBMS specific options.
+  qbmsOptions: IQBMSOptions;
+
+  // The operation path has different uses depending
+  //  on the QBMS operation we're using. e.g. qbmsExtract
+  //  will extract the contents of an archive to operationPath
+  //  while reimport will attempt to insert the contents of
+  //  operationPath to the archive.
+  operationPath?: string;
+
+  // Extension specific attachments; should only be populated
+  //  by officially supported game extensions.
+  additionalAttachments?: () => Promise<IAttachmentData[]>;
+
+  // Callback functor called once QBMS finishes its operations.
+  callback?: (err: Error, data: any) => void;
+}
+
+export interface IAttachmentData {
+  filePath: string;
+  description: string;
 }
