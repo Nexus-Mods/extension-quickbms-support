@@ -9,6 +9,7 @@ import { fs, log, selectors, types, util } from 'vortex-api';
 
 const GAME_SUPPORT: string[] = [];
 const UNIAPP = app || remote.app;
+const DEPRECATED_NOTIF_ID = 'deprecated-qbms-call';
 
 let _GAMEMODE_SUPPORTED = false;
 
@@ -137,6 +138,30 @@ function reImport(context: types.IExtensionContext, props: IQBMSOpProps) {
   .catch(err => errorHandler(context.api, props, err));
 }
 
+function raiseDeprecatedAPINotification(context: types.IExtensionContext) {
+  const state = context.api.store.getState();
+  const notifications = util.getSafe(state,
+    ['session', 'notifications', 'notifications'], []);
+  if (notifications.find(not => not.id === DEPRECATED_NOTIF_ID) === undefined) {
+    context.api.sendNotification({
+      id: DEPRECATED_NOTIF_ID,
+      message: 'Game extension is using deprecated QBMS API calls',
+      type: 'warning',
+      noDismiss: true,
+      actions: [
+        {
+          title: 'More',
+          action: () => context.api.showDialog('info', 'Deprecated QB API',
+          {
+            text: 'This extension is using deprecated QBMS API calls which will eventually be removed - '
+                + 'please inform the extension developer to update it ASAP!',
+          }, [{ label: 'Close' }]),
+        },
+      ],
+    });
+  }
+}
+
 function init(context: types.IExtensionContext) {
   context.registerDashlet('QBMS Support', 1, 2, 250, AttribDashlet,
     showAttrib, () => ({}), undefined);
@@ -156,7 +181,7 @@ function init(context: types.IExtensionContext) {
 
   context.once(() => {
     context.api.events.on('gamemode-activated', (gameMode: string) => {
-      context.api.dismissNotification('deprecated-qbms-call');
+      context.api.dismissNotification(DEPRECATED_NOTIF_ID);
       _GAMEMODE_SUPPORTED = GAME_SUPPORT.includes(gameMode);
     });
     context.api.events.on('quickbms-operation', (
@@ -167,6 +192,8 @@ function init(context: types.IExtensionContext) {
       options: IQBMSOptions,
       callback: (err: Error, data: IListEntry[]) => void) => {
         // Leaving this here temporarily for backwards compatibility
+        raiseDeprecatedAPINotification(context);
+
         const state = context.api.store.getState();
         const activeGameId = selectors.activeGameId(state);
         const props: IQBMSOpProps = {
@@ -177,24 +204,6 @@ function init(context: types.IExtensionContext) {
           qbmsOptions: options,
           callback,
         };
-
-        context.api.sendNotification({
-          id: 'deprecated-qbms-call',
-          message: 'Game extension is using deprecated API',
-          type: 'warning',
-          noDismiss: true,
-          allowSuppress: false,
-          actions: [
-            {
-              title: 'More',
-              action: () => context.api.showDialog('info', 'Deprecated API',
-              {
-                text: 'This extension is using deprecated QBMS API calls which will eventually be removed - '
-                    + 'please inform the extension developer to update it ASAP!',
-              }, [{ label: 'Close' }]),
-            },
-          ],
-        });
 
         if (!GAME_SUPPORT.includes(activeGameId)) {
           // Not a registered game.
