@@ -95,47 +95,53 @@ function testGameRegistered(props: IQBMSOpProps): Promise<void> {
 }
 
 function list(context: types.IExtensionContext, props: IQBMSOpProps) {
-  return testGameRegistered(props)
-  .then(() => {
-    return require('./quickbms').list(props)
-      .then(listEntries => (props.callback !== undefined)
-        ? props.callback(undefined, listEntries)
-        : Promise.resolve());
-  })
-  .catch(err => errorHandler(context.api, props, err));
+  if (props.qbmsOptions === undefined) {
+    props.qbmsOptions = {};
+  }
+  return require('./quickbms').list(props)
+    .then(listEntries => (props.callback !== undefined)
+      ? props.callback(undefined, listEntries)
+      : Promise.resolve())
+    .catch(err => errorHandler(context.api, props, err));
 }
 
 function extract(context: types.IExtensionContext, props: IQBMSOpProps) {
-  return testGameRegistered(props)
-  .then(() => {
-    return require('./quickbms').extract(props)
-      .then(() => (props.callback !== undefined)
-        ? props.callback(undefined, undefined)
-        : Promise.resolve());
-  })
-  .catch(err => errorHandler(context.api, props, err));
+  if (props.qbmsOptions === undefined) {
+    props.qbmsOptions = {};
+  }
+  return require('./quickbms').extract(props)
+    .then(() => (props.callback !== undefined)
+      ? props.callback(undefined, undefined)
+      : Promise.resolve())
+    .catch(err => errorHandler(context.api, props, err));
 }
 
 function write(context: types.IExtensionContext, props: IQBMSOpProps) {
-  return testGameRegistered(props)
-  .then(() => {
-    return require('./quickbms').write(props)
-      .then(() => (props.callback !== undefined)
-        ? props.callback(undefined, undefined)
-        : Promise.resolve());
-  })
-  .catch(err => errorHandler(context.api, props, err));
+  if (props.qbmsOptions === undefined) {
+    props.qbmsOptions = {};
+  }
+  return require('./quickbms').write(props)
+    .then(() => (props.callback !== undefined)
+      ? props.callback(undefined, undefined)
+      : Promise.resolve())
+    .catch(err => errorHandler(context.api, props, err));
 }
 
 function reImport(context: types.IExtensionContext, props: IQBMSOpProps) {
-  return testGameRegistered(props)
-  .then(() => {
-    return require('./quickbms').write(props)
-      .then(() => (props.callback !== undefined)
-        ? props.callback(undefined, undefined)
-        : Promise.resolve());
-  })
-  .catch(err => errorHandler(context.api, props, err));
+  if (props.qbmsOptions === undefined) {
+    props.qbmsOptions = {};
+  }
+
+  if (props.qbmsOptions.allowResize === undefined) {
+    // default to reimport method 1
+    props.qbmsOptions.allowResize = false;
+  }
+
+  return require('./quickbms').reImport(props)
+    .then(() => (props.callback !== undefined)
+      ? props.callback(undefined, undefined)
+      : Promise.resolve())
+    .catch(err => errorHandler(context.api, props, err));
 }
 
 function raiseDeprecatedAPINotification(context: types.IExtensionContext) {
