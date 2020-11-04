@@ -83,7 +83,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
   return new Promise<void>((resolve, reject) => {
     let args = [
       (!!command) ? ' -' + command : undefined,
-      (!!options.allowResize)
+      (options.allowResize !== undefined)
         ? (!options.allowResize)
           ? '-r'
           : '-r -r'
@@ -209,7 +209,7 @@ function reImport(props: IQBMSOpProps): Promise<void> {
     .then(() => (!!qbmsOptions.wildCards)
       ? createFiltersFile(qbmsOptions.wildCards)
       : Promise.resolve())
-    .then(() => (!!qbmsOptions.allowResize)
+    .then(() => (qbmsOptions.allowResize !== undefined)
       ? Promise.resolve()
       : Promise.reject(new util.ArgumentInvalid('Re-import version was not specified')))
     .then(() => run('w',
