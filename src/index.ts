@@ -24,6 +24,24 @@ function queryAttachment(data: IAttachmentData) {
     .catch(err => Promise.resolve(undefined));
 }
 
+async function successfulOp(context: types.IExtensionContext, props: IQBMSOpProps, data?: any) {
+  const id = 'qbms-success-notif';
+  const state = context.api.store.getState();
+  const notifications = util.getSafe(state, ['session', 'notifications', 'notifications'], []);
+  if (notifications.find(notif => notif.id === id) === undefined) {
+    context.api.sendNotification({
+      id,
+      type: 'success',
+      message: 'QBMS operation completed',
+      displayMS: 3000,
+    });
+  }
+  if (props.callback !== undefined) {
+    props.callback(undefined, data);
+  }
+  return Promise.resolve();
+}
+
 async function errorHandler(api: types.IExtensionApi,
                             props: IQBMSOpProps, err: any): Promise<void> {
   const { callback, gameMode } = props;
@@ -100,7 +118,7 @@ function list(context: types.IExtensionContext, props: IQBMSOpProps) {
   }
   return require('./quickbms').list(props)
     .then(listEntries => (props.callback !== undefined)
-      ? props.callback(undefined, listEntries)
+      ? successfulOp(context, props, listEntries)
       : Promise.resolve())
     .catch(err => errorHandler(context.api, props, err));
 }
@@ -111,7 +129,7 @@ function extract(context: types.IExtensionContext, props: IQBMSOpProps) {
   }
   return require('./quickbms').extract(props)
     .then(() => (props.callback !== undefined)
-      ? props.callback(undefined, undefined)
+      ? successfulOp(context, props)
       : Promise.resolve())
     .catch(err => errorHandler(context.api, props, err));
 }
@@ -122,7 +140,7 @@ function write(context: types.IExtensionContext, props: IQBMSOpProps) {
   }
   return require('./quickbms').write(props)
     .then(() => (props.callback !== undefined)
-      ? props.callback(undefined, undefined)
+      ? successfulOp(context, props)
       : Promise.resolve())
     .catch(err => errorHandler(context.api, props, err));
 }
@@ -139,7 +157,7 @@ function reImport(context: types.IExtensionContext, props: IQBMSOpProps) {
 
   return require('./quickbms').reImport(props)
     .then(() => (props.callback !== undefined)
-      ? props.callback(undefined, undefined)
+      ? successfulOp(context, props)
       : Promise.resolve())
     .catch(err => errorHandler(context.api, props, err));
 }
