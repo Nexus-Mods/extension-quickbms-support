@@ -110,18 +110,28 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
       }
     };
 
+    const stdInErrs: string[] = [];
     const checkTimer = () => {
       if ((lastMessageReceived + TIMEOUT_MSEC) <= Date.now()) {
         process.kill();
         clearTimeout(timer);
         timer = undefined;
       } else {
+        // We haven't received any messages back from the qbms process
+        //  in 5 seconds. This is generally a sign that qbms is stuck.
+        //  Hitting any keyboard key will revive the process (even when
+        //  running it manually); we're going to attempt to simulate
+        //  a spacebar key press which should force the process back into
+        //  gear.
+        process.stdin.write('\x20', (err: Error) => {
+          stdInErrs.push(JSON.stringify(err, undefined, 2));
+        });
         timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
       }
     };
 
-    const stdOutLines = [];
-    const stdErrLines = [];
+    const stdOutLines: string[] = [];
+    const stdErrLines: string[] = [];
 
     process.on('error', (err) => {
       if (createLog) {
@@ -137,7 +147,7 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
           //  the create log switch has been provided!
           wstream = fs.createWriteStream(LOG_FILE_PATH);
         }
-        const timeoutDump = [].concat(['QBMS has timed out!'], stdErrLines, stdOutLines);
+        const timeoutDump = [].concat(['QBMS has timed out!'], stdErrLines, stdOutLines, stdInErrs);
         timeoutDump.forEach(line => wstream.write(line + '\n'));
 
         wstream.close();
