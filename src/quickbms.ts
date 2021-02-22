@@ -73,7 +73,8 @@ function validateArguments(archivePath: string, bmsScriptPath: string,
 
 function run(command: string, parameters: string[], options: IQBMSOptions): Promise<void> {
   let timer: NodeJS.Timer;
-  let lastMessageReceived;
+  let isClosed: boolean = false;
+  let lastMessageReceived: number;
   let wstream;
   const createLog = (!!options.createLog || (command === 'l'));
   if (createLog) {
@@ -123,10 +124,15 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
         //  running it manually); we're going to attempt to simulate
         //  a spacebar key press which should force the process back into
         //  gear.
-        process.stdin.write('\x20', (err: Error) => {
-          stdInErrs.push(JSON.stringify(err, undefined, 2));
-        });
-        timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+        if (!isClosed) {
+          process.stdin.write('\x20', (err: Error) => {
+            stdInErrs.push(JSON.stringify(err, undefined, 2));
+          });
+          timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+        } else {
+          clearTimeout(timer);
+          timer = undefined;
+        }
       }
     };
 
@@ -141,6 +147,8 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
     });
 
     process.on('close', (code, signal) => {
+      // stdio streams are now closed.
+      isClosed = true;
       if (signal === 'SIGTERM') {
         if (!createLog) {
           // We timed out - We want this logged regardless of whether

@@ -1,6 +1,6 @@
 {
   "name": "quickbms-support",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "QuickBMS extractor support",
   "main": "./out/index.js",
   "repository": "",
