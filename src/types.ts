@@ -83,7 +83,7 @@ export interface IQBMSOpProps {
   archivePath: string;
 
   // QBMS specific options.
-  qbmsOptions: IQBMSOptions;
+  qbmsOptions?: IQBMSOptions;
 
   // The operation path has different uses depending
   //  on the QBMS operation we're using. e.g. qbmsExtract

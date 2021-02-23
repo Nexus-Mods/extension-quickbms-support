@@ -114,7 +114,9 @@ function testGameRegistered(props: IQBMSOpProps): Promise<void> {
 
 function list(context: types.IExtensionContext, props: IQBMSOpProps) {
   if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {};
+    props.qbmsOptions = {
+      wildCards: ['{}'],
+    };
   }
   return require('./quickbms').list(props)
     .then(listEntries => (props.callback !== undefined)
@@ -125,7 +127,9 @@ function list(context: types.IExtensionContext, props: IQBMSOpProps) {
 
 function extract(context: types.IExtensionContext, props: IQBMSOpProps) {
   if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {};
+    props.qbmsOptions = {
+      wildCards: ['{}'],
+    };
   }
   return require('./quickbms').extract(props)
     .then(() => (props.callback !== undefined)
@@ -136,7 +140,9 @@ function extract(context: types.IExtensionContext, props: IQBMSOpProps) {
 
 function write(context: types.IExtensionContext, props: IQBMSOpProps) {
   if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {};
+    props.qbmsOptions = {
+      wildCards: ['{}'],
+    };
   }
   return require('./quickbms').write(props)
     .then(() => (props.callback !== undefined)
@@ -147,7 +153,9 @@ function write(context: types.IExtensionContext, props: IQBMSOpProps) {
 
 function reImport(context: types.IExtensionContext, props: IQBMSOpProps) {
   if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {};
+    props.qbmsOptions = {
+      wildCards: ['{}'],
+    };
   }
 
   if (props.qbmsOptions.allowResize === undefined) {
