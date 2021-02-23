@@ -37,19 +37,42 @@ function quote(input: string): string {
 }
 
 function parseList(input: string, wildCards: string[]): IListEntry[] {
-  const res: IListEntry[] = [];
   const lines = input.split('\n');
-  const filtered = lines.filter(line =>
-    wildCards.find(file => (line.indexOf('- filter') === -1)
-      && (line.indexOf(file) !== -1)) !== undefined);
-  filtered.forEach(line => {
-    const arr = line.trim().split(' ').filter(entry => !!entry);
-    if (arr.length !== 3) {
-      return;
+  const wildCardRgx = /{}|\*/g;
+  const regexps: RegExp[] = wildCards.reduce((accum, wildCard) => {
+    if (wildCardRgx.test(wildCard)) {
+      const replacement = wildCard.replace(wildCardRgx, '.*');
+      accum.push(new RegExp(replacement, 'g'));
     }
-    const [ offset, size, filePath ] = arr;
-    res.push({ offset, size, filePath });
-  });
+    return accum;
+  }, []);
+  const findMatch = (filePath: string) => {
+    if (wildCards.includes(filePath)) {
+      return true;
+    }
+
+    let matched = false;
+    for (const rgx of regexps) {
+      if (rgx.test(filePath)) {
+        matched = true;
+        break;
+      }
+    }
+
+    return matched;
+  };
+  const filtered: string[] = lines.filter(line => !!line && !line.includes('- filter'));
+  const res: IListEntry[] = filtered.reduce((accum, line) => {
+    const arr = line.trim().split(' ').filter(entry => !!entry);
+    if (arr.length === 3) {
+      const [ offset, size, filePath ] = arr;
+      if (findMatch(filePath)) {
+        accum.push({ offset, size, filePath });
+      }
+    }
+    return accum;
+  }, []);
+
   return res;
 }
 
