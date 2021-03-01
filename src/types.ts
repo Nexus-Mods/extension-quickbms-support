@@ -82,6 +82,12 @@ export interface IQBMSOpProps {
   // Absolute path to the affected archive
   archivePath: string;
 
+  // Vortex will not inform the user of successful or failed QBMS operations.
+  //  The generated error will still be forwarded to the calling extension, thus
+  //  transferring all error handling responsibilities to the extension itself.
+  // Note that this property will not affect QBMS's own verbosity!
+  quiet?: boolean
+
   // QBMS specific options.
   qbmsOptions?: IQBMSOptions;
 

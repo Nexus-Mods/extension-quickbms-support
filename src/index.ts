@@ -28,7 +28,7 @@ async function successfulOp(context: types.IExtensionContext, props: IQBMSOpProp
   const id = 'qbms-success-notif';
   const state = context.api.store.getState();
   const notifications = util.getSafe(state, ['session', 'notifications', 'notifications'], []);
-  if (notifications.find(notif => notif.id === id) === undefined) {
+  if ((props.quiet !== true) && notifications.find(notif => notif.id === id) === undefined) {
     context.api.sendNotification({
       id,
       type: 'success',
@@ -91,8 +91,10 @@ async function errorHandler(api: types.IExtensionApi,
     })
     .then(() => {
       if (_GAMEMODE_SUPPORTED) {
-        api.showErrorNotification('failed to execute qbms operation', err,
-          { allowReport: contributed !== undefined, attachments });
+        if (props.quiet !== true) {
+          api.showErrorNotification('failed to execute qbms operation', err,
+            { allowReport: contributed !== undefined, attachments });
+        }
 
         if (callback) {
           callback(err, undefined);
