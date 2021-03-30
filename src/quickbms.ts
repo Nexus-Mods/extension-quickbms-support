@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 
 import { app, remote } from 'electron';
-import { fs, util } from 'vortex-api';
+import { fs, log, util } from 'vortex-api';
 
 const uniApp = app || remote.app;
 
@@ -148,10 +148,17 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
         //  a spacebar key press which should force the process back into
         //  gear.
         if (!isClosed) {
-          process.stdin.write('\x20', (err: Error) => {
-            stdInErrs.push(JSON.stringify(err, undefined, 2));
-          });
-          timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+          try {
+            process.stdin.write('\x20', (err: Error) => {
+              stdInErrs.push(JSON.stringify(err, undefined, 2));
+            });
+            timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+          } catch (err) {
+            isClosed = true;
+            log('error', 'failed to send keep alive', err);
+            clearTimeout(timer);
+            timer = undefined;
+          }
         } else {
           clearTimeout(timer);
           timer = undefined;
