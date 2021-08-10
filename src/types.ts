@@ -11,13 +11,27 @@ export class QuickBMSError extends Error {
     //  stdErr output from QBMS can be hundreds if not thousands of lines
     //  long (depending on how many mods the user had installed) which
     //  can cause the array to get truncated "<long array cut>"
-    this.mErrorLines = (stdErrLines.length > 40)
-      ? stdErrLines.slice(stdErrLines.length - 40).join('\n')
-      : stdErrLines.join('\n');
+    const filtered = this.trimContact(stdErrLines);
+    this.mErrorLines = (filtered.length > 40)
+      ? filtered.slice(filtered.length - 40).join('\n')
+      : filtered.join('\n');
   }
 
   public get errorLines(): string {
     return this.mErrorLines;
+  }
+
+  private trimContact(stdErrLines: string[]): string[] {
+    // This function intends to trim error lines containing
+    //  Luigi's contact details when an error occurrs - this is not
+    //  to remove attribution, but rather to try and limit the amount
+    //  of spam Luigi might be getting from our users.
+    // @Luigi, if for whatever reason you like the spam and wish us to
+    //  re-instate this information - let us know.
+    // The attribution dashlet will remain in place, crediting QBMS's
+    //  creator, Luigi Auriemma.
+    return stdErrLines.filter((line, idx) => (idx > 10)
+      ? true : !line.toLowerCase().includes('luigi'));
   }
 }
 

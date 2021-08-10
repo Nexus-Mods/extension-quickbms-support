@@ -114,12 +114,27 @@ function testGameRegistered(props: IQBMSOpProps): Promise<void> {
     : Promise.resolve();
 }
 
-function list(context: types.IExtensionContext, props: IQBMSOpProps) {
+function sanitizeProps(props: IQBMSOpProps, opType: QBMSOperationType): IQBMSOpProps {
   if (props.qbmsOptions === undefined) {
     props.qbmsOptions = {
       wildCards: ['{}'],
     };
   }
+
+  if (opType === 'reimport' && props.qbmsOptions.allowResize === undefined) {
+    // default to reimport method 1
+    props.qbmsOptions.allowResize = false;
+  }
+
+  if (opType === 'write' && props.operationPath !== undefined && props.operationPath.endsWith(path.sep)) {
+    props.operationPath = props.operationPath.substr(0, props.operationPath.length - 1);
+  }
+
+  return props;
+}
+
+function list(context: types.IExtensionContext, props: IQBMSOpProps) {
+  props = sanitizeProps(props, 'list');
   return require('./quickbms').list(props)
     .then(listEntries => (props.callback !== undefined)
       ? successfulOp(context, props, listEntries)
@@ -128,11 +143,7 @@ function list(context: types.IExtensionContext, props: IQBMSOpProps) {
 }
 
 function extract(context: types.IExtensionContext, props: IQBMSOpProps) {
-  if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {
-      wildCards: ['{}'],
-    };
-  }
+  props = sanitizeProps(props, 'extract');
   return require('./quickbms').extract(props)
     .then(() => (props.callback !== undefined)
       ? successfulOp(context, props)
@@ -141,11 +152,7 @@ function extract(context: types.IExtensionContext, props: IQBMSOpProps) {
 }
 
 function write(context: types.IExtensionContext, props: IQBMSOpProps) {
-  if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {
-      wildCards: ['{}'],
-    };
-  }
+  props = sanitizeProps(props, 'write');
   return require('./quickbms').write(props)
     .then(() => (props.callback !== undefined)
       ? successfulOp(context, props)
@@ -154,17 +161,7 @@ function write(context: types.IExtensionContext, props: IQBMSOpProps) {
 }
 
 function reImport(context: types.IExtensionContext, props: IQBMSOpProps) {
-  if (props.qbmsOptions === undefined) {
-    props.qbmsOptions = {
-      wildCards: ['{}'],
-    };
-  }
-
-  if (props.qbmsOptions.allowResize === undefined) {
-    // default to reimport method 1
-    props.qbmsOptions.allowResize = false;
-  }
-
+  props = sanitizeProps(props, 'reimport');
   return require('./quickbms').reImport(props)
     .then(() => (props.callback !== undefined)
       ? successfulOp(context, props)

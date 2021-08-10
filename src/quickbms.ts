@@ -120,18 +120,24 @@ function run(command: string, parameters: string[], options: IQBMSOptions): Prom
     ];
 
     args = args.filter(arg => arg !== undefined).concat(parameters);
-
+    let process;
     // const theCommand = path.join(__dirname, 'quickbms_4gb_files.exe') + args.join(' ');
-    const process = spawn(quote(path.join(__dirname, 'quickbms_4gb_files.exe')),
-    args, {
-      shell: true,
-    });
+    try {
+      process = spawn(quote(path.join(__dirname, 'quickbms_4gb_files.exe')),
+      args, {
+        shell: true,
+      });
+    } catch (err) {
+      return reject(err);
+    }
+
+    if (timer === undefined) {
+      lastMessageReceived = Date.now();
+      timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
+    }
 
     const onNewMessage = () => {
       lastMessageReceived = Date.now();
-      if (timer === undefined) {
-        timer = setTimeout(() => checkTimer(), CHECK_TIME_MSEC);
-      }
     };
 
     const stdInErrs: string[] = [];
