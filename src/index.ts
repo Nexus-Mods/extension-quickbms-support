@@ -1,4 +1,3 @@
-import { app, remote } from 'electron';
 import path from 'path';
 
 import AttribDashlet from './AttribDashlet';
@@ -8,7 +7,6 @@ import { IAttachmentData, IListEntry, IQBMSOpProps, IQBMSOptions,
 import { fs, log, selectors, types, util } from 'vortex-api';
 
 const GAME_SUPPORT: string[] = [];
-const UNIAPP = app || remote.app;
 const DEPRECATED_NOTIF_ID = 'deprecated-qbms-call';
 
 let _GAMEMODE_SUPPORTED = false;
@@ -57,12 +55,12 @@ async function errorHandler(api: types.IExtensionApi,
   }];
 
   const qbmsLog: IAttachmentData = {
-    filePath: path.join(UNIAPP.getPath('userData'), 'quickbms.log'),
+    filePath: path.join(util.getVortexPath('userData'), 'quickbms.log'),
     description: 'QuickBMS log file',
   };
 
   const vortexLog: IAttachmentData = {
-    filePath: path.join(UNIAPP.getPath('userData'), 'vortex.log'),
+    filePath: path.join(util.getVortexPath('userData'), 'vortex.log'),
     description: 'Vortex log file',
   };
 

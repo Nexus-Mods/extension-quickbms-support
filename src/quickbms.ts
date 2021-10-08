@@ -4,13 +4,10 @@ import Promise from 'bluebird';
 import { spawn } from 'child_process';
 import * as path from 'path';
 
-import { app, remote } from 'electron';
 import { fs, log, util } from 'vortex-api';
 
-const uniApp = app || remote.app;
-
-const FILTER_FILE_PATH = path.join(uniApp.getPath('userData'), 'temp', 'qbms', 'filters.txt');
-const LOG_FILE_PATH = path.join(uniApp.getPath('userData'), 'quickbms.log');
+const FILTER_FILE_PATH = path.join(util.getVortexPath('userData'), 'temp', 'qbms', 'filters.txt');
+const LOG_FILE_PATH = path.join(util.getVortexPath('userData'), 'quickbms.log');
 const TIMEOUT_MSEC = 15000;
 const CHECK_TIME_MSEC = 5000;
 
