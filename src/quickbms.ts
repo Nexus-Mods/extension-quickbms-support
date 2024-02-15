@@ -92,7 +92,7 @@ function validateArguments(archivePath: string, bmsScriptPath: string,
 }
 
 function run(command: string, parameters: string[], options: IQBMSOptions): Promise<void> {
-  let timer: NodeJS.Timer;
+  let timer: NodeJS.Timeout;
   let isClosed: boolean = false;
   let lastMessageReceived: number;
   let wstream;
